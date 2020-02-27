@@ -21,6 +21,8 @@ func printContractByCategory(jobs [][]string, professions [][]string) {
 	outputMap := make(map[string][]Value)
 	var categories []string
 	categories = append(categories, "TOTAL")
+	var contracts []string
+	contracts = append(contracts, "TOTAL")
 
 	for i := range jobs {
 
@@ -30,6 +32,7 @@ func printContractByCategory(jobs [][]string, professions [][]string) {
 		}
 
 		contract := jobs[i][1]
+		contracts = AppendIfMissing(contracts, contract)
 
 		// if no contract for the job, we increment "Other" contract
 		if contract == "" {
@@ -46,7 +49,7 @@ func printContractByCategory(jobs [][]string, professions [][]string) {
 		outputMap = incrementValue(outputMap, "TOTAL", "TOTAL")
 	}
 
-	printOutput(outputMap, categories)
+	printOutput(outputMap, categories, contracts)
 }
 
 func incrementValue(outputMap map[string][]Value, contract string, category string) map[string][]Value {
@@ -86,7 +89,7 @@ func createNewValues(category string) []Value {
 	return append(values, newValue)
 }
 
-func printOutput(output map[string][]Value, categories []string) {
+func printOutput(output map[string][]Value, categories []string, contracts []string) {
 	var longestContract = longestString(mapKeys(output))
 	var firstRow = getFirstRow(categories, longestContract)
 
@@ -94,8 +97,7 @@ func printOutput(output map[string][]Value, categories []string) {
 	fmt.Println(firstRow)
 	fmt.Println(getStringOfChar("-", len(firstRow)))
 
-
-	for contract := range output {
+	for _, contract := range contracts {
 		fmt.Print("|" + contract + getStringOfChar(" ", len(longestContract) - len(contract)) + "|")
 		printContractValues(output[contract], categories)
 		fmt.Println(getStringOfChar("-", len(firstRow)))
