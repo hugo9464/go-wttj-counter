@@ -12,11 +12,13 @@ import (
 func main() {
 	jobs := ReadFile("technical-test-jobs.csv")
 	professions := ReadFile("technical-test-professions.csv")
-	PrintContractByCategory(jobs, professions)
+	outputString := GetContractByCategory(jobs, professions)
+	fmt.Println(outputString)
 }
 
-// PrintContractByCategory prints the contract by category table, based on given jobs and professions
-func PrintContractByCategory(jobs [][]string, professions [][]string) {
+// GetContractByCategory gets the contract by category table, based on given jobs and professions
+// It returns the formatted contract by category table
+func GetContractByCategory(jobs [][]string, professions [][]string) string {
 
 	outputMap := make(map[string][]Value)
 	var categories []string
@@ -50,7 +52,7 @@ func PrintContractByCategory(jobs [][]string, professions [][]string) {
 		outputMap = IncrementValue(outputMap, "TOTAL", "TOTAL")
 	}
 
-	PrintOutput(outputMap, categories, contracts)
+	return GetOutput(outputMap, categories, contracts)
 }
 
 // IncrementValue increments the value for the given contract and category
@@ -96,37 +98,45 @@ func CreateNewValues(category string) []Value {
 	return append(values, newValue)
 }
 
-// PrintOutput prints the given output map
+// GetOutput gets the given output map
 // it respects the order for the given categories and contracts slices
-func PrintOutput(output map[string][]Value, categories []string, contracts []string) {
+// It returns the formatted output map as string
+func GetOutput(output map[string][]Value, categories []string, contracts []string) string {
+
+	var outputString string
 
 	// we get the longest contract size to add needed spaces for formating
 	var longestContractSize = LongestStringSize(contracts)
 	var firstRow = GetFirstRow(categories, longestContractSize)
 
-	fmt.Println(GetStringOfChar("-", len(firstRow)))
-	fmt.Println(firstRow)
-	fmt.Println(GetStringOfChar("-", len(firstRow)))
+	outputString += GetStringOfChar("-", len(firstRow)) + "\n"
+	outputString += firstRow + "\n"
+	outputString += GetStringOfChar("-", len(firstRow)) + "\n"
 
 	for _, contract := range contracts {
-		fmt.Print("|" + contract + GetStringOfChar(" ", longestContractSize-len(contract)) + "|")
-		PrintContractValues(output[contract], categories)
-		fmt.Println(GetStringOfChar("-", len(firstRow)))
+		outputString += "|" + contract + GetStringOfChar(" ", longestContractSize-len(contract)) + "|"
+		outputString += GetContractValues(output[contract], categories)
+		outputString += GetStringOfChar("-", len(firstRow)) + "\n"
 	}
 
+	return outputString
 }
 
-// PrintContractValues prints Values as row base on the order of the given categories
-func PrintContractValues(values []Value, categories []string) {
+// GetContractValues gets Values as row based on the order of the given categories
+// It returns the given values as string
+func GetContractValues(values []Value, categories []string) string {
+	var contractValues string
 	for _, category := range categories {
-		PrintValueForCategory(values, category)
+		contractValues += GetValueForCategory(values, category)
 	}
-	fmt.Print("\n")
+	return contractValues + "\n"
 }
 
-// PrintValueForCategory prints the value for the given category
+// GetValueForCategory gets the value for the given category
 // formats the cell with need spaces before and after the value
-func PrintValueForCategory(values []Value, category string) {
+// It returns the value as string
+func GetValueForCategory(values []Value, category string) string {
+	var valueForCategory string
 	var count int
 	for _, value := range values {
 		if value.category == category {
@@ -137,12 +147,12 @@ func PrintValueForCategory(values []Value, category string) {
 	var categoryLength = utf8.RuneCountInString(category) + 2
 	var spacesToAdd = (categoryLength - CountDigits(count)) / 2
 
-	fmt.Print(GetStringOfChar(" ", spacesToAdd))
-	fmt.Print(count)
+	valueForCategory += GetStringOfChar(" ", spacesToAdd) + strconv.Itoa(count)
 	if (spacesToAdd*2 + CountDigits(count)) < categoryLength {
 		spacesToAdd++
 	}
-	fmt.Print(GetStringOfChar(" ", spacesToAdd) + "|")
+
+	return valueForCategory + GetStringOfChar(" ", spacesToAdd) + "|"
 }
 
 // CountDigits counts the digits for the given number
@@ -160,6 +170,7 @@ func CountDigits(i int) int {
 
 // GetFirstRow gets the formatted first row for the given categories
 // it adds an empty cell at the beginning based on the given longestContractSize
+// It returns the first row as string
 func GetFirstRow(categories []string, longestContractSize int) string {
 	var row string
 	row += "|" + GetStringOfChar(" ", longestContractSize)
