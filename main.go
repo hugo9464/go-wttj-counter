@@ -88,7 +88,7 @@ func AppendValue(values []Value, category string) []Value {
 	return append(values, value)
 }
 
-// CreateNewValues creates a new slice of values for the given category
+// CreateNewValues creates a new slice of values for the given category with count=1
 // it returns the new slice of values
 func CreateNewValues(category string) []Value {
 	var values []Value
@@ -174,11 +174,11 @@ func GetFirstRow(categories []string, longestContractSize int) string {
 
 // GetStringOfChar returns a string of the given char
 func GetStringOfChar(s string, length int) string {
-	var spaces string
+	var chars string
 	for i := 0; i < length; i++ {
-		spaces += s
+		chars += s
 	}
-	return spaces
+	return chars
 }
 
 // LongestStringSize gets the longest string size between the given strings
