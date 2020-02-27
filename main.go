@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"reflect"
 	"strconv"
 	"unicode/utf8"
 )
@@ -16,6 +15,7 @@ func main() {
 	printContractByCategory(jobs, professions)
 }
 
+// Prints the contract by category table, based on given jobs and professions
 func printContractByCategory(jobs [][]string, professions [][]string) {
 
 	outputMap := make(map[string][]Value)
@@ -32,7 +32,7 @@ func printContractByCategory(jobs [][]string, professions [][]string) {
 		}
 
 		contract := jobs[i][1]
-		contracts = AppendIfMissing(contracts, contract)
+		contracts = appendIfMissing(contracts, contract)
 
 		// if no contract for the job, we increment "Other" contract
 		if contract == "" {
@@ -41,8 +41,9 @@ func printContractByCategory(jobs [][]string, professions [][]string) {
 		professionId, _ := strconv.Atoi(jobs[i][0])
 
 		category := getCategory(professions, professionId)
-		categories = AppendIfMissing(categories, category)
+		categories = appendIfMissing(categories, category)
 
+		// Once we have the contract and the category, with increment it in the outputMap
 		outputMap = incrementValue(outputMap, contract, category)
 		outputMap = incrementValue(outputMap, "TOTAL", category)
 		outputMap = incrementValue(outputMap, contract, "TOTAL")
@@ -52,11 +53,13 @@ func printContractByCategory(jobs [][]string, professions [][]string) {
 	printOutput(outputMap, categories, contracts)
 }
 
+// incrementValue increments the value for the given contract and category
+// it returns the updated outputMap
 func incrementValue(outputMap map[string][]Value, contract string, category string) map[string][]Value {
 
 	var values = outputMap[contract]
+	// if no values found for the contract, we create a new slice of values
 	if values == nil {
-
 		values = createNewValues(category)
 		outputMap[contract] = values
 		return outputMap
@@ -68,6 +71,8 @@ func incrementValue(outputMap map[string][]Value, contract string, category stri
 	return outputMap
 }
 
+// appendValue increments the count for the given category and append it in the slice of values
+// it returns the update slice of values
 func appendValue(values []Value, category string) []Value {
 	var value Value
 	for i := range values {
@@ -83,38 +88,35 @@ func appendValue(values []Value, category string) []Value {
 	return append(values, value)
 }
 
+// createNewValues creates a new slice of values for the given category
+// it returns the new slice of values
 func createNewValues(category string) []Value {
 	var values []Value
 	newValue := Value{category, 1}
 	return append(values, newValue)
 }
 
+// printOutput prints the given output map
+// it respects the order for the given categories and contracts slices
 func printOutput(output map[string][]Value, categories []string, contracts []string) {
-	var longestContract = longestString(mapKeys(output))
-	var firstRow = getFirstRow(categories, longestContract)
+
+	// we get the longest contract size to add needed spaces for formating
+	var longestContractSize = longestStringSize(contracts)
+	var firstRow = getFirstRow(categories, longestContractSize)
 
 	fmt.Println(getStringOfChar("-", len(firstRow)))
 	fmt.Println(firstRow)
 	fmt.Println(getStringOfChar("-", len(firstRow)))
 
 	for _, contract := range contracts {
-		fmt.Print("|" + contract + getStringOfChar(" ", len(longestContract) - len(contract)) + "|")
+		fmt.Print("|" + contract + getStringOfChar(" ", longestContractSize - len(contract)) + "|")
 		printContractValues(output[contract], categories)
 		fmt.Println(getStringOfChar("-", len(firstRow)))
 	}
 
 }
 
-func mapKeys(output map[string][]Value) []string {
-	keys := reflect.ValueOf(output).MapKeys()
-	strkeys := make([]string, len(keys))
-	for i := 0; i < len(keys); i++ {
-		strkeys[i] = keys[i].String()
-	}
-
-	return strkeys
-}
-
+// printContractValues prints Values as row base on the order of the given categories
 func printContractValues(values []Value, categories []string) {
 	for _, category := range categories {
 		printValueForCategory(values, category)
@@ -122,6 +124,8 @@ func printContractValues(values []Value, categories []string) {
 	fmt.Print("\n")
 }
 
+// printValueForCategory prints the value for the given category
+// formats the cell with need spaces before and after the value
 func printValueForCategory(values []Value, category string) {
 	var count int
 	for _, value := range values {
@@ -141,6 +145,7 @@ func printValueForCategory(values []Value, category string) {
 	fmt.Print(getStringOfChar(" ", spacesToAdd) + "|")
 }
 
+// countDigits counts the digits for the given number
 func countDigits(i int) int {
 	var count int
 	if i == 0 {
@@ -154,9 +159,11 @@ func countDigits(i int) int {
 	return count
 }
 
-func getFirstRow(categories []string, longestContract string) string {
+// getFirstRow gets the formatted first row for the given categories
+// it adds an empty cell at the beginning based on the given longestContractSize
+func getFirstRow(categories []string, longestContractSize int) string {
 	var row string
-	row += "|" + getStringOfChar(" ", len(longestContract))
+	row += "|" + getStringOfChar(" ", longestContractSize)
 	for i := range categories {
 		row += "| "
 		row += categories[i]
@@ -166,6 +173,7 @@ func getFirstRow(categories []string, longestContract string) string {
 	return row
 }
 
+// getStringOfChar returns a string of the given char
 func getStringOfChar(s string, length int) string{
 	var spaces string
 	for i := 0; i < length; i++ {
@@ -174,7 +182,8 @@ func getStringOfChar(s string, length int) string{
 	return spaces
 }
 
-func longestString(strings []string) string {
+// longestStringSize gets the longest string size between the given strings
+func longestStringSize(strings []string) int {
 	var longestString string
 	for _, s := range strings {
 		if len(s) > len(longestString) {
@@ -182,12 +191,10 @@ func longestString(strings []string) string {
 		}
 	}
 
-	return longestString
+	return len(longestString)
 }
 
-
-
-// `getCategory` gets the job category for the given profession id
+// getCategory gets the job category for the given profession id
 func getCategory(professions [][]string, id int) string {
 
 	for i := range professions {
@@ -206,7 +213,7 @@ func getCategory(professions [][]string, id int) string {
 	return "Other"
 }
 
-// `readFile` takes a filename and returns a two-dimensional list of strings
+// readFile takes a filename and returns a two-dimensional slice of strings
 func readFile(name string) [][]string {
 
 	f, err := os.Open(name)
@@ -224,7 +231,8 @@ func readFile(name string) [][]string {
 	return rows
 }
 
-func AppendIfMissing(slice []string, s string) []string {
+// appendIfMissing appends a value to the given slice if missing
+func appendIfMissing(slice []string, s string) []string {
 	for _, ele := range slice {
 		if ele == s {
 			return slice
